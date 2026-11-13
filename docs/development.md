@@ -6,17 +6,17 @@
 
 ```bash
 # 从 GitHub 安装（公开仓库，HTTPS 无需凭据）
-dsh plugin --profile web add github:s11phere/dsh-commandcode-quota
+dsh plugin --profile web add github:TianzeLuo/dsh-commandcode-quota
 
 # 完整 URL 也行
-dsh plugin --profile web add https://github.com/s11phere/dsh-commandcode-quota.git
+dsh plugin --profile web add https://github.com/TianzeLuo/dsh-commandcode-quota.git
 
 # 或者先 clone 到本地，再按路径安装（开发时用这个）
-git clone git@github.com:s11phere/dsh-commandcode-quota.git
+git clone git@github.com:TianzeLuo/dsh-commandcode-quota.git
 dsh plugin --profile web add ./dsh-commandcode-quota
 ```
 
-**别用 scp 风格的 `git@github.com:s11phere/dsh-commandcode-quota.git`。** `dsh plugin add`
+**别用 scp 风格的 `git@github.com:TianzeLuo/dsh-commandcode-quota.git`。** `dsh plugin add`
 把参数原样交给 pnpm，而 pnpm 会把 `git@github.com:...` 误解析成「包名 `git` + 版本
 `github.com:...`」，结果是装出一个叫 `git` 的空依赖，插件完全不生效。上面三种写法都实测过。
 
@@ -29,6 +29,22 @@ profile 的 bundle 列表在启动时组装，所以新增包之后要**重启 `
 > 同一块盘时，pnpm 建的 junction 目标是错的，`dsh plugin add` 会整体失败（exit 1），
 > 并连带让同 profile 里其它本地链接插件在启动时被静默跳过。自检、修复与建议见
 > [Windows 注意事项](windows.md#本地路径安装跨盘会建出坏链接)。
+
+## 配置
+
+全部可选。在 profile 的 `cordis.patch.yml` 里按 id 覆盖：
+
+| 键 | 默认 | 作用 |
+| --- | --- | --- |
+| `timeoutMs` | `15000` | 单端点超时 |
+| `cacheMs` | `3000` | 宿主侧结果缓存 |
+| `debug` | `false` | 打印凭据来源与注册结果 |
+
+凭据与地址**不需要配置**：自动从 DSH profile 的 commandcode provider 路由、`~/.dsh/.credentials.yaml`、环境变量依次发现。
+
+## 刷新时机
+
+页面加载、点开卡片、每 10 分钟各拉一次；标签页切回前台时若数据已过期再补一次。四个数据端点各自独立降级——单个失败只在卡片底部提示，其余照常显示。查额度是纯 GET，不消耗任何额度。
 
 ## 跑测试
 

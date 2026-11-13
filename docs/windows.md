@@ -19,18 +19,18 @@
 `DSH_HOME` 在 `C:`、插件源码在 `F:` 时：
 
 ```powershell
-dsh plugin --profile web add F:\project\tools\plugin\dsh-commandcode-quota
+dsh plugin --profile web add F:\path\to\dsh-commandcode-quota
 ```
 
 pnpm 这一半是成功的，但随后的 `reconcile` 会抛错、命令以 exit 1 结束：
 
 ```
 dependencies:
-+ dsh-commandcode-quota link:F:/project/tools/plugin/dsh-commandcode-quota
++ dsh-commandcode-quota link:F:/path/to/dsh-commandcode-quota
 Done in 1.6s using pnpm v10.20.0
 
 Error: dsh: cannot resolve profile bundle "dsh-away-notify" from the dsh installation
-       or C:\Users\27045\.dsh\profiles\web
+       or C:\Users\<你>\.dsh\profiles\web
 ```
 
 注意报的是**另一个** bundle。新包此时只写进了 `package.json` 的 `dependencies`，
@@ -44,23 +44,23 @@ Error: dsh: cannot resolve profile bundle "dsh-away-notify" from the dsh install
    Windows 按「链接所在目录」解析，于是实际指向一个不存在的路径：
 
    ```
-   <JUNCTION> dsh-commandcode-quota [C:\Users\27045\.dsh\profiles\web\F:\project\tools\plugin\dsh-commandcode-quota]
+   <JUNCTION> dsh-commandcode-quota [C:\Users\<你>\.dsh\profiles\web\F:\path\to\dsh-commandcode-quota]
    ```
 
 2. **只有跨盘才会这样。** pnpm 用 `path.relative()` 算链接目标；同一块盘时它算出的是正确的
-   相对路径（`..\..\..\dsh-commandcode-quota`），跨盘时只能返回绝对串 `F:\project\...`，
+   相对路径（`..\..\..\dsh-commandcode-quota`），跨盘时只能返回绝对串 `F:\path\to\...`，
    而这个串在 junction 里又被当成相对目标。所以「profile 与源码同在 `F:`」的隔离环境里
    一次就成功，真实 profile 必失败。
    DSH 侧的 `anchorPathSpec`（`@deepseek-ai/dsh-plugin-manager` 的 `lib/types/operations.js`）
    只重写**相对**路径（`./x`、`../x`），绝对路径原样交给 pnpm，这一层也拦不住。
 
 3. **失败会连坐。** `reconcile` 必须先把 profile 里**既有**的 bundle 全部解析成功，才能把新包
-   追加进 `bundles`。上例里的 `dsh-away-notify` 同样是坏的跨盘链接 → 解析抛错 → 整个命令失败。
+   追加进 `bundles`。上例里的 [dsh-away-notify](https://github.com/TianzeLuo/dsh-away-notify) 同样是坏的跨盘链接 → 解析抛错 → 整个命令失败。
    而且**每次** `dsh plugin add` 都会让 pnpm 重新链接一遍，把手工修好的链接再次改坏。
 
 > 顺带一提：profile 里只要有这种坏链接，DSH 启动时会**静默跳过**它——
 > `dsh --profile web --dump-config` 会打印 `skipping profile bundle "..."`，
-> 而插件本身不报错。上例中的 `dsh-away-notify` 就是这样连续几次启动都没加载。
+> 而插件本身不报错。上例中的它就是这样连续几次启动都没加载。
 
 ### 自检
 
@@ -82,7 +82,7 @@ $nm = "$env:USERPROFILE\.dsh\profiles\web\node_modules"
 # rmdir 不带 /s：只摘掉 reparse point，绝不动源码目录
 cmd /c "rmdir `"$nm\dsh-commandcode-quota`""
 New-Item -ItemType Junction -Path "$nm\dsh-commandcode-quota" `
-         -Target 'F:\project\tools\plugin\dsh-commandcode-quota'
+         -Target 'F:\path\to\dsh-commandcode-quota'
 ```
 
 然后把包名补进 profile 的 `dsh.profile.bundles`（这一步就是 `reconcile` 本该做的事）：
@@ -150,7 +150,7 @@ POSIX 写法不变。这只影响测试夹具——生产路径由 `join` 一致
 | 点开卡片 | ✅ 268×430，视口内，数据与宿主返回逐项一致 |
 | 插件清单页 | ✅ 「已安装」下列出本插件 |
 | JS 异常 / `console.error` | ✅ 全程 0 / 0 |
-| 与 `dsh-away-notify` 同时装载 | ✅ 两个插件共同启动、互不干扰 |
+| 与 [dsh-away-notify](https://github.com/TianzeLuo/dsh-away-notify) 同时装载 | ✅ 两个插件共同启动、互不干扰 |
 
 环境：Windows 10/11 · DSH 0.1.7-rc.2 · Node v24.11.0 · PowerShell 5.1 · pnpm 10.20.0
 · Chrome 153（headless + CDP 驱动页面验收，与 [开发文档](development.md#验收记录) 里

@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Command Code quota",
+    "description": "Puts a quota button in the session header with the 5-hour, weekly and monthly windows, their reset countdowns, and the token, request and spend totals for the billing period. Open it before a long run to see how much plan headroom is left.",
+    "detail": "docs/DETAIL.md"
+  }
+}

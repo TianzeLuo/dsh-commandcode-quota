@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Command Code 额度",
+    "description": "在会话头部加一个额度按钮：点开是 5 小时、每周、月度三个窗口的已用比例与重置倒计时，以及计费周期内的 token、请求数与花费。跑长任务前先看一眼还剩多少额度。",
+    "detail": "docs/DETAIL.zh.md"
+  }
+}

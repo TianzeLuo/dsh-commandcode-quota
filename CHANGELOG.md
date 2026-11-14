@@ -2,6 +2,12 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 新增：插件面板显示元数据
+
+- **新增图标、中英文标题与说明、详情页与 640×300 预览图。** `package.json` 导出 `./icon` 与 `./locale/*.json`，`files` 收录这些文件与 `LICENSE`。
+
 ## [0.1.2] - 2026-09-29
 
 - 额度百分比统一保留一位小数，两位数以后的小幅变化也能看见。
